@@ -1,0 +1,8 @@
+Build the Project:
+
+Please import this project (restjson) to Eclipse (eclipse-jee-luna-SR1-linux-gtk-x86_64 prefered).
+Change the Server Runtime Environment to Apache Tomcat (Apache Tomcat v7.0 prefered).
+
+It has been successfully tested on eclipse-jee-luna-SR1-linux-gtk-x86_64 and Apache Tomcat v7.0.
+
+For more questions, please contact Dongli Zhang with dongli.zhang0129@gmail.com.

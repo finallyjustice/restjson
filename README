@@ -1,0 +1,33 @@
+
+######## Installation Guide: ########
+
+Required Software:
+1. Java SE Development Kit (jdk-6u41-linux-x64 prefered).
+2. Apache Tomcat server (apache-tomcat-7.0.57 prefered).
+
+Installation Procedure:
+1. Specify the your host url and port in restjson.config. For instance:
+	change "http://127.0.0.1:8080" to "http://www.yourdomainname.com:8080".
+
+2. Run "./install.sh".
+
+3. Copy restjson.war to "webapps" folder of Apache Tomcat server. For instance:
+	cp restjson.war ${path of Tomcat}/apache-tomcat-7.0.57/webapps/restjson.war
+
+4. Start Tomcat server.
+
+5. Test with:
+	curl --request GET http://www.yourdomainname.com:8080/restjson/object
+   You should get:
+    []
+
+
+For any question, please contact Dongli Zhang with dongli.zhang0129@gmail.com.
+
+
+######## Future works to improve the API ########
+1. The current REST API can be accessed by everyone. I will combine OAuth based login with the API in the future.
+2. The current REST API does not support (find-grained) JSON object access control. For instance, user A is allowed to read user B's objects, but cannot update/delete them.  
+3. The current API might be vulnerable to uid/parameters injection attack (which is similar to SQL injection attack). I will analyze and solve this problem in the future.
+4. The REST API is running on a single AWS VM. I will make the service distributed, and store the JSON objects on distributed filesystem (e.g, GFS).
+

@@ -1,0 +1,82 @@
+This is a sample scenario that I tested the REST API with curl.
+
+REST API URL:  http://54.149.110.182:8080/restjson/object
+
+#### Initially, there is no object. ####
+
+1. curl --request GET http://54.149.110.182:8080/restjson/object
+[]
+
+#### Add first object. ####
+
+2. curl --request POST http://54.149.110.182:8080/restjson/object -d '{"Name":"Tom", "Age":"18"}'
+{"Name":"Tom","uid":"82bbb43377354f80bb0663f7a2b4fcfe","Age":"18"}
+
+#### Add second object. It has same fields and values as the first object. They will have different uids. ####
+
+3. curl --request POST http://54.149.110.182:8080/restjson/object -d '{"Name":"Tom", "Age":"18"}'
+{"Name":"Tom","uid":"c7f4bc7ba9c24a2a9236c6dc6e0f6666","Age":"18"}
+
+#### Add third object. ####
+
+4. curl --request POST http://54.149.110.182:8080/restjson/object -d '{"First Name":"Tom", "Last Name":"Zhang", "Grade":"A"}'
+{"uid":"02b052da65d44e6d9106940aec36d9c3","Grade":"A","Last Name":"Zhang","First Name":"Tom"}
+
+#### Obtain the list of objects. We have three objects now. ####
+
+5. curl --request GET http://54.149.110.182:8080/restjson/object
+[{"url":"http://54.149.110.182:8080/restjson/object/c7f4bc7ba9c24a2a9236c6dc6e0f6666"},{"url":"http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3"},{"url":"http://54.149.110.182:8080/restjson/object/82bbb43377354f80bb0663f7a2b4fcfe"}]
+
+#### Obtain a specific object. ####
+
+6. curl --request GET http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3
+{"uid":"02b052da65d44e6d9106940aec36d9c3","Grade":"A","Last Name":"Zhang","First Name":"Tom"}
+
+#### Obtain an object with wrong uid. ####
+
+7. curl --request GET http://54.149.110.182:8080/restjson/object/wronguid
+{"message":"Cannot find object wronguid.","verb":"GET","url":"http://54.149.110.182:8080/restjson/object/wronguid"}
+
+#### Update object without parameter (It should return error). ####
+
+8. curl --request PUT http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3
+{"message":"Please provide JSON parameters.","verb":"POST","url":"http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3"}
+
+#### Update object correctly. ####
+
+9. curl --request PUT http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3 -d '{"uid": "02b052da65d44e6d9106940aec36d9c3", "First Name": "Tom", "Last Name": "Zhang", "Major":"Computer Science", "School":"Stony Brook University"}'
+{"uid":"02b052da65d44e6d9106940aec36d9c3","Major":"Computer Science","School":"Stony Brook University","Last Name":"Zhang","First Name":"Tom"}
+
+#### Update object with wrong uid. ####
+
+10. curl --request PUT http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3 -d '{"uid": "wronguid", "First Name": "Tom", "Last Name": "Zhang", "Major":"Computer Science", "School":"Stony Brook University"}'
+{"message":"failed to update object","verb":"PUT","url":"http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3"}
+
+#### Delete one of the three objects ####
+
+11. curl --request DELETE http://54.149.110.182:8080/restjson/object/02b052da65d44e6d9106940aec36d9c3
+
+#### We only have two objects remained #### 
+
+12. curl --request GET http://54.149.110.182:8080/restjson/object
+[{"url":"http://54.149.110.182:8080/restjson/object/c7f4bc7ba9c24a2a9236c6dc6e0f6666"},{"url":"http://54.149.110.182:8080/restjson/object/82bbb43377354f80bb0663f7a2b4fcfe"}]
+
+#### Delete an object without uid ####
+
+13. curl --request DELETE http://54.149.110.182:8080/restjson/object
+{"message":"Cannot find the object to delete.","verb":"DELETE","url":"http://54.149.110.182:8080/restjson/object"}
+
+#### Add new object with wrong JSON format input ####
+
+14. curl --request POST http://54.149.110.182:8080/restjson/object -d '{Wrong JSON format}'
+{"message":"Ilegal JSON pamameters.","verb":"POST","url":"http://54.149.110.182:8080/restjson/object"}
+
+#### Add a complex JSON object. Field "Parents" is also a JSON object ####
+
+15. curl --request POST http://54.149.110.182:8080/restjson/object -d '{"Name":"Mike", "Parents": {"Father":"Sandy", "Mother":"Cathy"}}' 
+{"Name":"Mike","uid":"4f5ee11cd4684b0e8cda572012d8f914","Parents":{"Mother":"Cathy","Father":"Sandy"}}
+
+#### Query the new complex object ####
+
+16. curl --request GET http://54.149.110.182:8080/restjson/object/4f5ee11cd4684b0e8cda572012d8f914
+{"Name":"Mike","uid":"4f5ee11cd4684b0e8cda572012d8f914","Parents":{"Mother":"Cathy","Father":"Sandy"}}

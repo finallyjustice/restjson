@@ -1,0 +1,6 @@
+ 
+Testing Guide:
+
+./sample contains a sample scenario that I tested the REST API.
+
+./autotest.py is an automatic testing Python script.
