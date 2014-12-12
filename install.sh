@@ -1,20 +1,17 @@
 #!/bin/sh
 
 DATAHOME=$HOME/restjsonhome
-JSONDBHOME=$DATAHOME/jsondb
 CONFIGFILE=restjson.config
 
 # create json data home folder
 mkdir $DATAHOME
-# create json database folder
-mkdir $JSONDBHOME
 # create application configuration file
 cp $CONFIGFILE $DATAHOME/.
 
 echo
 
 # print api url
-HOSTURL=`cat $CONFIGFILE | grep "^http"`
+HOSTURL=`cat $CONFIGFILE | grep "^url" | awk '{print $2}'`
 APIURL=$HOSTURL/restjson/object
 echo "######## Thank you for using the REST API ########"
 echo "URL: "$APIURL

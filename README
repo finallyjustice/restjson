@@ -9,6 +9,8 @@ Installation Procedure:
 1. Specify the your host url and port in restjson.config. For instance:
 	change "http://127.0.0.1:8080" to "http://www.yourdomainname.com:8080".
 
+	Please also change the access key, secret key and the bucket.
+
 2. Run "./install.sh".
 
 3. Copy restjson.war to "webapps" folder of Apache Tomcat server. For instance:

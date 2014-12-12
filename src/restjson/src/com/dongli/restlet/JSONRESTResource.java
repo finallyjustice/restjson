@@ -22,6 +22,7 @@
 package com.dongli.restlet;
 
 import java.io.IOException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.restlet.data.MediaType;
@@ -32,6 +33,8 @@ import org.restlet.resource.Get;
 import org.restlet.resource.Post;
 import org.restlet.resource.Put;
 import org.restlet.resource.ServerResource;
+
+import com.dongli.exception.MyRESTException;
 import com.dongli.model.MyConfiguration;
 import com.dongli.model.MyJSONData;
 import com.dongli.model.MyJSONObject;
@@ -40,140 +43,131 @@ public class JSONRESTResource extends ServerResource {
 	
 	/* This method will process GET request
 	 * to a single object or a list of UIDs
-	 * @return one object || all objects || error message
 	 */
 	@Get
-    public Representation representGet() {
-		
+	public Representation representGet() {
+
 		String rootPath = getRequest().getResourceRef().getPath();
-        String refPath = rootPath.substring(MyConfiguration.getInstance().getRootPrefix().length());
-        
-        // Get all objects
-        if(refPath==null || refPath.trim().equals("") || refPath.equals("/")) {
-        	return new StringRepresentation(MyJSONData.getAllObjects().toString()+"\n", MediaType.TEXT_PLAIN);
-        }
-        
-        String uid = refPath.substring(1);
-        if(uid==null || !refPath.substring(0, 1).equals("/")) {
-        	return new StringRepresentation(getErrorMessage("GET", rootPath, "Not a valid REST url."), MediaType.TEXT_PLAIN);
-        }
-        
-        // Get a specific object
-     	MyJSONObject myJsonObject = MyJSONData.queryObject(uid);
-     	
-     	// Cannot find object, show error message
-     	if(myJsonObject == null) {
-        	getErrorMessage("GET", rootPath, "Cannot find object "+uid+".");
-        	return new StringRepresentation(getErrorMessage("GET", rootPath, "Cannot find object "+uid+"."), MediaType.TEXT_PLAIN);
-     	}
-     	
-       	return new StringRepresentation(myJsonObject.toString()+"\n", MediaType.TEXT_PLAIN);
-    }
+		String refPath = rootPath
+				.substring(MyConfiguration.getInstance().rootPrefix.length());
+
+		// Get a specific object
+		MyJSONObject myJsonObject;
+
+		try {
+			// Get all objects
+			if (refPath == null || refPath.trim().equals("")
+					|| refPath.equals("/")) {
+				return new StringRepresentation(MyJSONData.getAllObjects()
+						.toString() + "\n", MediaType.TEXT_PLAIN);
+			}
+
+			String uid = refPath.substring(1);
+			if (uid == null || !refPath.substring(0, 1).equals("/")) {
+				throw new MyRESTException("Not a valid REST url.");
+			}
+
+			myJsonObject = MyJSONData.queryObject(uid);
+		} catch (MyRESTException e) {
+			// TODO Auto-generated catch block
+			return new StringRepresentation(getErrorMessage("GET", rootPath,
+					e.getMessage()), MediaType.TEXT_PLAIN);
+		}
+
+		return new StringRepresentation(myJsonObject.toString() + "\n",
+				MediaType.TEXT_PLAIN);
+	}
 	
 	/* This method will process POST request
 	 * to create a new object
-	 * @return created object || error message
 	 */
 	@Post
 	public Representation representPost(Representation rep) throws IOException {
 		
-		// if there is no parameter with POST request
-		if(rep == null) {
+		String uid;
+		
+		try {
+			// if there is no parameter with POST request
+			if(rep == null) 
+				throw new MyRESTException("Please provide JSON parameters."); 
+		
+			String msg = rep.getText();
+			MyJSONObject myJsonObject = new MyJSONObject();
+		
+			myJsonObject.setJSONObjectFromString(msg);
+		
+			uid = MyJSONData.createObject(myJsonObject);
+			// successfully create the new object
+			MyJSONObject createdObject = MyJSONData.queryObject(uid);
+			if(createdObject == null)
+				throw new MyRESTException("Failed to create the object "+uid+".");
+			
+			return new StringRepresentation(MyJSONData.queryObject(uid).toString()+"\n", MediaType.TEXT_PLAIN);
+			
+		} catch (MyRESTException e) {
+			//e.printStackTrace();
 			String rootPath = getRequest().getResourceRef().getPath();
-        	return new StringRepresentation(getErrorMessage("POST", rootPath, "Please provide JSON parameters."), MediaType.TEXT_PLAIN);
+			return new StringRepresentation(getErrorMessage("POST", rootPath, e.getMessage()), MediaType.TEXT_PLAIN);
 		}
-		
-		String msg = rep.getText();
-		
-		MyJSONObject myJsonObject = new MyJSONObject();
-		
-		if(myJsonObject.setJSONObjectFromString(msg) == 0) {
-			String rootPath = getRequest().getResourceRef().getPath();
-        	return new StringRepresentation(getErrorMessage("POST", rootPath, "Ilegal JSON pamameters."), MediaType.TEXT_PLAIN);
-		}
-		
-		String uid = MyJSONData.createObject(myJsonObject);
-		
-		// if failed to create the new object
-		if(uid == null) {
-			String rootPath = getRequest().getResourceRef().getPath();
-        	return new StringRepresentation(getErrorMessage("POST", rootPath, "Failed to create new object."), MediaType.TEXT_PLAIN);
-		}
-		
-		// successfully create the new object
-		MyJSONObject createdObject = MyJSONData.queryObject(uid);
-		if(createdObject == null) {
-			String rootPath = getRequest().getResourceRef().getPath();
-        	return new StringRepresentation(getErrorMessage("POST", rootPath, "Failed to create new object."), MediaType.TEXT_PLAIN);
-		}
-		
-		return new StringRepresentation(MyJSONData.queryObject(uid).toString()+"\n", MediaType.TEXT_PLAIN);
 	}
 	
 	/* This method will process PUT request 
 	 * to update an existing object
-	 * @return new object || error message
 	 */
 	@Put
     public StringRepresentation representPut(Representation rep) throws IOException {
 		
-		// if there is no parameter with POST request
-		if(rep == null) {
-			String rootPath = getRequest().getResourceRef().getPath();
-			return new StringRepresentation(getErrorMessage("POST", rootPath, "Please provide JSON parameters."), MediaType.TEXT_PLAIN);
-		}
+		MyJSONObject myJSONObject;
 		
-		String msg = rep.getText();
-		MyJSONObject myJSONObject = new MyJSONObject();
+		try {
+			// if there is no parameter with POST request
+			if(rep == null)
+				throw new MyRESTException("Please provide JSON parameters.");
 		
-		if(myJSONObject.setJSONObjectFromString(msg) == 0) {
-			String rootPath = getRequest().getResourceRef().getPath();
-        	return new StringRepresentation(getErrorMessage("POST", rootPath, "Ilegal JSON pamameters."), MediaType.TEXT_PLAIN);
-		}
+			String msg = rep.getText();
+			myJSONObject = new MyJSONObject();
 		
-		if(myJSONObject.getUID() == null) {
-			String rootPath = getRequest().getResourceRef().getPath();
-			return new StringRepresentation(getErrorMessage("POST", rootPath, "Please privode uid in parameters.."), MediaType.TEXT_PLAIN);
-		}
+			myJSONObject.setJSONObjectFromString(msg);
+			if(myJSONObject.getUID() == null) 
+				throw new MyRESTException("Please privode uid in parameters..");
 			
-		// Failed to update object
-		if(MyJSONData.updateObject(myJSONObject) == 0) {
+			// Failed to update object
+			MyJSONData.updateObject(myJSONObject);
+			
+			return new StringRepresentation(MyJSONData.queryObject((String)(myJSONObject.getUID())).toString()+"\n", MediaType.TEXT_PLAIN);
+		} catch (MyRESTException e) {
 			String rootPath = getRequest().getResourceRef().getPath();
-        	return new StringRepresentation(getErrorMessage("PUT", rootPath, "failed to update object"), MediaType.TEXT_PLAIN);
+			return new StringRepresentation(getErrorMessage("PUT", rootPath, e.getMessage()), MediaType.TEXT_PLAIN);
 		}
-		
-		return new StringRepresentation(MyJSONData.queryObject((String)(myJSONObject.getUID())).toString()+"\n", MediaType.TEXT_PLAIN);
     }
 	
 	/* This method will process DELETE request
 	 * to delete an object 
-	 * @ return null | error message
 	 */
 	@Delete
     public String representDelete() {
 		
 		String rootPath = getRequest().getResourceRef().getPath();
-		String refPath = rootPath.substring(MyConfiguration.getInstance().getRootPrefix().length());
+		String refPath = rootPath.substring(MyConfiguration.getInstance().rootPrefix.length());
 		
 		if(refPath==null || refPath.equals("") || refPath.equals("/")) {
-			return getErrorMessage("DELETE", rootPath, "Cannot find the object to delete.");
+			return "";
 		}
 		
 		String uid = refPath.substring(1);
-		
-		// cannot find the object to be deleted
-		if(MyJSONData.deleteObject(uid) == 0) {
-			return getErrorMessage("DELETE", rootPath, "Cannot find the object to delete.");
-		}
+		MyJSONData.deleteObject(uid);
 		
         return "";
     }
 	
+	/*
+	 * Generate the error message for REST API
+	 */
 	private String getErrorMessage(String verb, String root, String msg) {
 		JSONObject jsonObject = new JSONObject();
 		try {
 			jsonObject.put("verb", verb);
-			jsonObject.put("url", MyConfiguration.getInstance().getUrlPrefix()+root);
+			jsonObject.put("url", MyConfiguration.getInstance().urlPrefix+root);
 			jsonObject.put("message", msg);
 		} catch (JSONException e) {
 			e.printStackTrace();

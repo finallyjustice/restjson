@@ -27,6 +27,7 @@ package com.dongli.model;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import com.dongli.exception.MyRESTException;
 
 public class MyJSONObject {
 	
@@ -40,18 +41,14 @@ public class MyJSONObject {
 	
 	/*
 	 * Given a json string to generate the jsonObject
-	 * @return Successfully - return 1
-	 * @return Ilegal string - return 0 
 	 */
-	public int setJSONObjectFromString(String input) {
+	public void setJSONObjectFromString(String input) throws MyRESTException {
 		try {
 			jsonObject = new JSONObject(input);
 		} catch (JSONException e) {
 			//e.printStackTrace();
-			return 0;
+			throw new MyRESTException("Ilegal JSON pamameters.");
 		}
-		
-		return 1;
 	}
 	
 	public String getUID() {

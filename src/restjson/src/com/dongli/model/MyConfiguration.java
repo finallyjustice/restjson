@@ -34,15 +34,16 @@ import java.util.Properties;
 
 public class MyConfiguration {
 	public String urlPrefix;    // domain name and port of the server, e.g., http://localhost:8080
+	public String accessKey;    // aws access key
+	public String secretKey;    // aws secret key
+	public String bucket;       // aws bucket
 	public String rootPrefix;   // web application root path
-	public String jsondbFolder; // json data file (in user's home folder)
 	
 	private static MyConfiguration myConfiguration;
 	
 	private MyConfiguration() {
 		
 		Properties props=System.getProperties(); 
-		jsondbFolder = props.getProperty("user.home")+"/restjsonhome/jsondb/";
 		
 		File configFile = new File(props.getProperty("user.home")+"/restjsonhome/restjson.config");
 		try {
@@ -51,8 +52,15 @@ public class MyConfiguration {
 			  
 			while((line = bufferedReader.readLine()) != null) {
 				if(!line.startsWith("#") && !line.trim().equals("")) {
-					urlPrefix = line;
-					break;
+					String[] tmpParam = line.split(" ");
+					if(tmpParam[0].equals("url"))
+						urlPrefix = tmpParam[1];
+					if(tmpParam[0].equals("access_key"))
+						accessKey = tmpParam[1];
+					if(tmpParam[0].equals("secret_key"))
+						secretKey = tmpParam[1];
+					if(tmpParam[0].equals("bucket"))
+						bucket = tmpParam[1];
 				}
 			}
 			bufferedReader.close();
@@ -71,17 +79,5 @@ public class MyConfiguration {
 			myConfiguration = new MyConfiguration();
 		}
 		return myConfiguration;
-	}
-	
-	public String getUrlPrefix() {
-		return urlPrefix;
-	}
-	
-	public String getRootPrefix() {
-		return rootPrefix;
-	}
-	
-	public String getJsondbFolder() {
-		return jsondbFolder;
 	}
 }
